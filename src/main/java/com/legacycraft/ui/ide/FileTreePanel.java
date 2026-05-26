@@ -13,15 +13,20 @@ import java.util.function.Consumer;
 /**
  * Lazily-loaded directory tree rooted at the decompile folder.
  * <p>
- * Selecting a leaf invokes the supplied callback only for {@code .java}
- * files. Non-Java leaves are accepted but the callback decides what to do.
+ * The tree can be rebuilt on demand via {@link #refresh()}; this is needed
+ * because the decompile folder may not exist when the panel is first
+ * constructed and the user expects the tree to populate after a decompile.
  */
 public final class FileTreePanel extends BorderPane {
 
     private final TreeView<File> tree;
+    private final Workspace workspace;
+    private final Consumer<File> onFileChosen;
 
     public FileTreePanel(Workspace workspace, Consumer<File> onFileChosen) {
-        this.tree = new TreeView<>(rootItem(workspace));
+        this.workspace = workspace;
+        this.onFileChosen = onFileChosen;
+        this.tree = new TreeView<>();
         this.tree.setShowRoot(true);
         this.tree.setCellFactory(view -> new javafx.scene.control.TreeCell<File>() {
             @Override
@@ -40,13 +45,15 @@ public final class FileTreePanel extends BorderPane {
             }
         });
         setCenter(tree);
+        refresh();
     }
 
-    private static TreeItem<File> rootItem(Workspace workspace) {
+    /** Rebuilds the tree from the current state of the decompile folder. */
+    public void refresh() {
         File root = workspace.decompileRoot();
-        TreeItem<File> item = new LazyTreeItem(root);
-        item.setExpanded(true);
-        return item;
+        TreeItem<File> rootItem = new LazyTreeItem(root);
+        rootItem.setExpanded(true);
+        tree.setRoot(rootItem);
     }
 
     /** Tree item that loads its children only when first expanded. */
@@ -71,8 +78,7 @@ public final class FileTreePanel extends BorderPane {
                 if (file != null && file.isDirectory()) {
                     File[] children = file.listFiles();
                     if (children != null) {
-                        File[] sorted = sort(children);
-                        for (File child : sorted) {
+                        for (File child : sort(children)) {
                             super.getChildren().add(new LazyTreeItem(child));
                         }
                     }

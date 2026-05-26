@@ -23,14 +23,14 @@ public final class IdePanel extends BorderPane {
     private final Workspace workspace;
     private final TextArea placeholder;
     private final BorderPane editorHost;
+    private final FileTreePanel tree;
 
     public IdePanel(Workspace workspace, ConsolePanel console) {
         this.workspace = workspace;
         this.editor = new CodeEditor();
         this.placeholder = buildPlaceholder();
         this.editorHost = new BorderPane(placeholder);
-
-        FileTreePanel tree = new FileTreePanel(workspace, this::openFile);
+        this.tree = new FileTreePanel(workspace, this::openFile);
 
         SplitPane horizontal = new SplitPane(tree, editorHost);
         horizontal.setDividerPositions(LEFT_DIVIDER);
@@ -41,6 +41,11 @@ public final class IdePanel extends BorderPane {
         vertical.setDividerPositions(BOTTOM_DIVIDER);
 
         setCenter(vertical);
+    }
+
+    /** Reloads the file tree from disk. Called when entering IDE mode. */
+    public void refresh() {
+        tree.refresh();
     }
 
     private TextArea buildPlaceholder() {

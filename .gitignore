@@ -9,10 +9,11 @@ bin/
 .vscode/
 .DS_Store
 
-# DevKit working directories (should never be committed)
-versions/
-deps/
-decompile/
-libs/
-logs/
-mod-*.zip
+# DevKit working directories at the repo root only
+# (leading slash so they don't match same-named source packages)
+/versions/
+/deps/
+/decompile/
+/libs/
+/logs/
+/mod-*.zip

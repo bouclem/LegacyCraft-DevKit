@@ -96,6 +96,7 @@ public final class MainWindow extends Application {
         String title = Lang.get("app.title");
         stage.setScene(scene);
         stage.setTitle(title);
+        stage.setMaximized(true);
         stage.setOnCloseRequest(event -> {
             worker.shutdownNow();
             if (fileLogger != null) {
@@ -165,6 +166,7 @@ public final class MainWindow extends Application {
     private void applyMode() {
         if (mode == Mode.IDE) {
             // The console is owned by the IDE panel while in IDE mode.
+            idePanel.refresh();
             root.setCenter(idePanel);
         } else {
             root.setCenter(console);
