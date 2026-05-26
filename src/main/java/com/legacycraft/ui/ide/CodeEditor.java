@@ -1,237 +1,250 @@
 package com.legacycraft.ui.ide;
 
 import com.legacycraft.diff.LineDiff;
-import javafx.beans.value.ChangeListener;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import org.fxmisc.flowless.VirtualizedScrollPane;
-import org.fxmisc.richtext.CodeArea;
-import org.fxmisc.richtext.LineNumberFactory;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ListView;
+import javafx.scene.layout.BorderPane;
 
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.IntFunction;
 
 /**
- * RichTextFX-based editor with a diff overlay against an immutable original.
+ * A minimal in-house code editor.
  * <p>
- * Real lines render with green/orange backgrounds for additions and
- * modifications. Ghost paragraphs (red, strikethrough) are inserted for
- * deletions when the user clicks the {@code ▶} arrow in the gutter.
- * Ghost lines are filtered out by {@link #saveTo(File)} so the on-disk
- * file never contains them.
+ * Lines are stored in an {@link ObservableList} and rendered as
+ * {@code TextField}-backed list cells. Per-cell CSS classes paint the
+ * diff overlay (green = added, orange = modified). Deletions surface a
+ * collapsible ghost block (red + strikethrough) anchored to the line
+ * before the original deletion site.
+ * <p>
+ * Per-line undo/redo is provided by the platform {@code TextField}
+ * (Ctrl+Z / Ctrl+Y while a line is focused).
  */
-public final class CodeEditor extends VirtualizedScrollPane<CodeArea> {
+public final class CodeEditor extends BorderPane {
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
 
-    private final CodeArea area;
-    private final Set<Integer> ghostParagraphs = new HashSet<>();
-    private final Map<Integer, List<String>> deletionByLine = new HashMap<>();
+    private final ObservableList<EditorLine> lines = FXCollections.observableArrayList();
+    private final ListView<EditorLine> list = new ListView<>(lines);
+    private final Map<Integer, List<String>> deletionByAnchor = new HashMap<>();
     private final Set<Integer> expandedDeletions = new HashSet<>();
 
     private File currentFile;
     private File originalFile;
-    private List<LineDiff.DiffMark> marks = Collections.emptyList();
-    private boolean suppressChangeListener;
 
     public CodeEditor() {
-        super(new CodeArea());
-        this.area = getContent();
-        this.area.getStyleClass().add("code-area");
-        this.area.setParagraphGraphicFactory(buildGraphicFactory());
-        this.area.textProperty().addListener(autosaveListener());
+        list.setCellFactory(new LineCellFactory(
+                this::onLineEdited,
+                this::toggleDeletion,
+                idx -> isDeletionAnchorRealLine(idx),
+                expandedDeletions::contains));
+        list.setFocusTraversable(false);
+        setCenter(list);
     }
 
     public void open(File file, File originalCounterpart) {
-        try {
-            String text = file.isFile()
-                    ? new String(Files.readAllBytes(file.toPath()), UTF_8)
-                    : "";
-            this.currentFile = file;
-            this.originalFile = originalCounterpart;
-            this.ghostParagraphs.clear();
-            this.expandedDeletions.clear();
-            this.suppressChangeListener = true;
-            this.area.replaceText(text);
-            this.suppressChangeListener = false;
-            refreshDiff();
-        } catch (Exception e) {
-            this.area.replaceText("// failed to open " + file + ": " + e.getMessage());
-        }
+        this.currentFile = file;
+        this.originalFile = originalCounterpart;
+        this.expandedDeletions.clear();
+        this.lines.setAll(loadLines(file));
+        refreshDiff();
     }
 
     public void closeFile() {
         this.currentFile = null;
         this.originalFile = null;
-        this.marks = Collections.emptyList();
-        this.ghostParagraphs.clear();
         this.expandedDeletions.clear();
-        this.area.replaceText("");
+        this.deletionByAnchor.clear();
+        this.lines.clear();
     }
 
-    /** Saves the current file, stripping ghost paragraphs from the output. */
-    public void saveTo(File file) {
-        if (file == null) {
+    private void onLineEdited(int index, String newText) {
+        if (index < 0 || index >= lines.size()) {
+            return;
+        }
+        EditorLine line = lines.get(index);
+        if (line.isGhost()) {
+            return;
+        }
+        line.setText(newText);
+        saveCurrent();
+        refreshDiff();
+    }
+
+    private void toggleDeletion(int realLineIndex) {
+        if (!deletionByAnchor.containsKey(realLineIndex)) {
+            return;
+        }
+        if (expandedDeletions.contains(realLineIndex)) {
+            collapseDeletion(realLineIndex);
+        } else {
+            expandDeletion(realLineIndex);
+        }
+        // Force visible rows to repaint their gutter arrows.
+        list.refresh();
+    }
+
+    private void expandDeletion(int realLineIndex) {
+        List<String> deleted = deletionByAnchor.get(realLineIndex);
+        if (deleted == null || deleted.isEmpty()) {
+            return;
+        }
+        int absoluteAnchor = absoluteIndexFor(realLineIndex);
+        int insertAt = absoluteAnchor + 1;
+        for (int i = 0; i < deleted.size(); i++) {
+            lines.add(insertAt + i, EditorLine.ghost(deleted.get(i), realLineIndex));
+        }
+        expandedDeletions.add(realLineIndex);
+    }
+
+    private void collapseDeletion(int realLineIndex) {
+        // Remove every ghost line whose anchor matches.
+        lines.removeIf(line -> line.isGhost() && line.getGhostAnchor() == realLineIndex);
+        expandedDeletions.remove(realLineIndex);
+    }
+
+    /**
+     * Translates a "real-line index" (file coordinate) into the matching
+     * row in the current observable list, accounting for any expanded
+     * ghost blocks above it.
+     */
+    private int absoluteIndexFor(int realLineIndex) {
+        int seenReal = -1;
+        for (int i = 0; i < lines.size(); i++) {
+            if (!lines.get(i).isGhost()) {
+                seenReal++;
+                if (seenReal == realLineIndex) {
+                    return i;
+                }
+            }
+        }
+        return Math.max(0, lines.size() - 1);
+    }
+
+    private boolean isDeletionAnchorRealLine(int absoluteRow) {
+        if (absoluteRow < 0 || absoluteRow >= lines.size()) {
+            return false;
+        }
+        if (lines.get(absoluteRow).isGhost()) {
+            return false;
+        }
+        int realIndex = realIndexFor(absoluteRow);
+        return deletionByAnchor.containsKey(realIndex);
+    }
+
+    private int realIndexFor(int absoluteRow) {
+        int seenReal = -1;
+        for (int i = 0; i <= absoluteRow && i < lines.size(); i++) {
+            if (!lines.get(i).isGhost()) {
+                seenReal++;
+            }
+        }
+        return seenReal;
+    }
+
+    private void saveCurrent() {
+        if (currentFile == null) {
             return;
         }
         StringBuilder sb = new StringBuilder();
-        int total = area.getParagraphs().size();
-        for (int i = 0; i < total; i++) {
-            if (ghostParagraphs.contains(i)) {
+        boolean first = true;
+        for (EditorLine line : lines) {
+            if (line.isGhost()) {
                 continue;
             }
-            if (sb.length() > 0) {
+            if (!first) {
                 sb.append('\n');
             }
-            sb.append(area.getParagraph(i).getText());
+            sb.append(line.getText());
+            first = false;
         }
         try {
-            Files.write(file.toPath(), sb.toString().getBytes(UTF_8));
+            Files.write(currentFile.toPath(), sb.toString().getBytes(UTF_8));
         } catch (Exception ignored) {
-            // surface via a logger one day; for now never crash the UI
+            // best-effort; never crash the UI on a save failure
         }
-    }
-
-    private ChangeListener<String> autosaveListener() {
-        return (obs, oldText, newText) -> {
-            if (suppressChangeListener || currentFile == null) {
-                return;
-            }
-            saveTo(currentFile);
-            refreshDiff();
-        };
-    }
-
-    private IntFunction<Node> buildGraphicFactory() {
-        IntFunction<Node> numbers = LineNumberFactory.get(area);
-        return paragraphIndex -> {
-            HBox box = new HBox(numbers.apply(paragraphIndex));
-            box.setSpacing(4);
-            if (deletionByLine.containsKey(paragraphIndex)) {
-                Label arrow = new Label(expandedDeletions.contains(paragraphIndex) ? "▼" : "▶");
-                arrow.getStyleClass().add("deletion-arrow");
-                arrow.setOnMouseClicked(e -> toggleDeletion(paragraphIndex));
-                box.getChildren().add(arrow);
-            }
-            return box;
-        };
-    }
-
-    private void toggleDeletion(int paragraphIndex) {
-        if (expandedDeletions.contains(paragraphIndex)) {
-            collapseDeletion(paragraphIndex);
-        } else {
-            expandDeletion(paragraphIndex);
-        }
-        // Force the gutter to re-render so the arrow flips.
-        area.setParagraphGraphicFactory(buildGraphicFactory());
-    }
-
-    private void expandDeletion(int paragraphIndex) {
-        List<String> lines = deletionByLine.get(paragraphIndex);
-        if (lines == null || lines.isEmpty()) {
-            return;
-        }
-        StringBuilder insertion = new StringBuilder();
-        for (String line : lines) {
-            insertion.append('\n').append(line);
-        }
-        suppressChangeListener = true;
-        int endOfLine = computeEndOfParagraph(paragraphIndex);
-        area.insertText(endOfLine, insertion.toString());
-        suppressChangeListener = false;
-        for (int i = 1; i <= lines.size(); i++) {
-            int ghostIdx = paragraphIndex + i;
-            ghostParagraphs.add(ghostIdx);
-            area.setParagraphStyle(ghostIdx, Collections.singleton("diff-ghost"));
-        }
-        expandedDeletions.add(paragraphIndex);
-    }
-
-    private void collapseDeletion(int paragraphIndex) {
-        List<String> lines = deletionByLine.get(paragraphIndex);
-        if (lines == null || lines.isEmpty()) {
-            return;
-        }
-        int firstGhost = paragraphIndex + 1;
-        int lastGhost = paragraphIndex + lines.size();
-        int start = computeEndOfParagraph(paragraphIndex);
-        int end = computeEndOfParagraph(lastGhost);
-        suppressChangeListener = true;
-        area.deleteText(start, end);
-        suppressChangeListener = false;
-        for (int i = firstGhost; i <= lastGhost; i++) {
-            ghostParagraphs.remove(i);
-        }
-        expandedDeletions.remove(paragraphIndex);
-    }
-
-    private int computeEndOfParagraph(int paragraphIndex) {
-        int absolute = 0;
-        for (int i = 0; i <= paragraphIndex; i++) {
-            absolute += area.getParagraph(i).length();
-            if (i < paragraphIndex) {
-                absolute += 1; // newline
-            }
-        }
-        return absolute;
     }
 
     private void refreshDiff() {
-        if (currentFile == null || originalFile == null) {
-            this.marks = Collections.emptyList();
-            this.deletionByLine.clear();
+        deletionByAnchor.clear();
+        if (currentFile == null || originalFile == null || !originalFile.isFile()) {
+            // No diff context: clear visual styling to NORMAL.
+            for (int i = 0; i < lines.size(); i++) {
+                EditorLine current = lines.get(i);
+                if (!current.isGhost()) {
+                    lines.set(i, current.withKind(EditorLine.Kind.NORMAL));
+                }
+            }
+            list.refresh();
             return;
         }
-        this.marks = LineDiff.compute(currentFile, originalFile);
-        applyParagraphStyles();
-        rebuildDeletionMap();
-        area.setParagraphGraphicFactory(buildGraphicFactory());
+        List<LineDiff.DiffMark> marks = LineDiff.compute(currentFile, originalFile);
+        applyMarks(marks);
+        rebuildDeletionMap(marks);
+        list.refresh();
     }
 
-    private void applyParagraphStyles() {
-        int total = area.getParagraphs().size();
-        for (int i = 0; i < total; i++) {
-            if (ghostParagraphs.contains(i)) {
-                continue;
+    private void applyMarks(List<LineDiff.DiffMark> marks) {
+        // Reset every non-ghost line to NORMAL first.
+        for (int i = 0; i < lines.size(); i++) {
+            EditorLine line = lines.get(i);
+            if (!line.isGhost() && line.getKind() != EditorLine.Kind.NORMAL) {
+                lines.set(i, line.withKind(EditorLine.Kind.NORMAL));
             }
-            area.setParagraphStyle(i, Collections.<String>emptyList());
         }
         for (LineDiff.DiffMark mark : marks) {
             if (mark.type == LineDiff.MarkType.DELETED) {
                 continue;
             }
-            String style = mark.type == LineDiff.MarkType.ADDED ? "diff-added" : "diff-modified";
-            int from = Math.max(0, mark.firstLine);
-            int to = Math.min(total - 1, mark.lastLineInclusive);
-            for (int i = from; i <= to; i++) {
-                if (ghostParagraphs.contains(i)) {
+            EditorLine.Kind kind = (mark.type == LineDiff.MarkType.ADDED)
+                    ? EditorLine.Kind.ADDED
+                    : EditorLine.Kind.MODIFIED;
+            for (int realIdx = mark.firstLine; realIdx <= mark.lastLineInclusive; realIdx++) {
+                int abs = absoluteIndexFor(realIdx);
+                if (abs < 0 || abs >= lines.size()) {
                     continue;
                 }
-                Collection<String> single = Collections.singleton(style);
-                area.setParagraphStyle(i, single);
+                EditorLine line = lines.get(abs);
+                if (line.isGhost()) {
+                    continue;
+                }
+                lines.set(abs, line.withKind(kind));
             }
         }
     }
 
-    private void rebuildDeletionMap() {
-        this.deletionByLine.clear();
+    private void rebuildDeletionMap(List<LineDiff.DiffMark> marks) {
         for (LineDiff.DiffMark mark : marks) {
-            if (mark.type != LineDiff.MarkType.DELETED) {
-                continue;
+            if (mark.type == LineDiff.MarkType.DELETED) {
+                deletionByAnchor.put(mark.firstLine, mark.deletedText);
             }
-            this.deletionByLine.put(mark.firstLine, new ArrayList<>(mark.deletedText));
+        }
+    }
+
+    private static List<EditorLine> loadLines(File file) {
+        if (file == null || !file.isFile()) {
+            return java.util.Collections.singletonList(EditorLine.normal(""));
+        }
+        try {
+            byte[] bytes = Files.readAllBytes(file.toPath());
+            String text = new String(bytes, UTF_8);
+            String[] split = text.split("\\r\\n|\\n|\\r", -1);
+            java.util.List<EditorLine> result = new java.util.ArrayList<>(split.length);
+            for (String s : Arrays.asList(split)) {
+                result.add(EditorLine.normal(s));
+            }
+            return result;
+        } catch (Exception e) {
+            return java.util.Collections.singletonList(
+                    EditorLine.normal("// failed to open " + file + ": " + e.getMessage()));
         }
     }
 }

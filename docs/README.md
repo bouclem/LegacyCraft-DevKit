@@ -4,7 +4,7 @@ A JavaFX-based development kit for old Minecraft versions, inspired by classic M
 
 ## Status
 
-`0.1-pre3` — IDE mode with in-editor diff overlay, real RUN/DECOMPILE/
+`0.1-pre3` — IDE mode with in-editor diff overlay, real RUN / DECOMPILE /
 RECOMPILE pipelines, session logging. Mappings still placeholders.
 
 ## Supported versions
@@ -27,6 +27,32 @@ can run on a newer JVM. `JAVA_HOME` does not need to point at Java 8.
 gradle run
 ```
 
+To produce the distributable fat jar:
+
+```
+gradle build
+```
+
+The output is `build/libs/devkit_gui.jar`. Drop it into any folder and
+launch with `java -jar devkit_gui.jar` — all working directories
+(`versions/`, `deps/`, `decompile/`, `libs/`, `logs/`) are created
+relative to the launch directory.
+
+## Workflow
+
+1. Click VERSION and pick a target.
+2. Click DECOMPILE — downloads `client.jar`, runs CFR, extracts assets,
+   and writes an immutable `original/` baseline.
+3. Click MODE to switch to IDE. Edit `.java` files in
+   `decompile/minecraft_decompile/src/`. Added lines glow green, modified
+   lines glow orange, deleted regions are reachable via a `▶` arrow that
+   expands a red ghost block showing the original lines.
+4. Click RECOMPILE — fetches compile-time libraries, compiles your edits,
+   produces `libs/minecraft.jar`, and zips every modified file (in `src/`
+   or `assets/`) into a `mod-<timestamp>.zip`.
+5. Click RUN — forks a JVM with the LWJGL natives on `java.library.path`
+   and launches `libs/minecraft.jar` as `DEV`.
+
 ## Project layout
 
 ```
@@ -35,9 +61,18 @@ settings.gradle           Gradle settings
 mappings/                 Shared SRG mappings (classes/fields/methods)
 src/main/java/com/legacycraft/
   Main.java               Entry point
-  ui/                     JavaFX window + console
-  core/                   Core types (VersionTarget)
-  action/                 RUN / DECOMPILE actions
+  action/                 RUN / DECOMPILE / RECOMPILE actions
+  core/                   Workspace, version target, hashing
+  decompile/              CFR driver, asset extractor, original sync
+  diff/                   Line-level diff against the original baseline
+  download/               HTTP, version resources, libraries, natives
+  i18n/                   Lang loader (flat JSON)
+  logging/                Session log file writer
+  recompile/              javac wrapper, jar builder, mod zipper
+  ui/                     JavaFX window, console, IDE panels
+src/main/resources/com/legacycraft/assets/
+  lang/en_us.json         Translation strings
+  css/ide.css             IDE theme
 ```
 
 ## License

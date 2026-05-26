@@ -2,17 +2,18 @@
 
 ## 0.1-pre3
 
-- New IDE mode: file tree on the left, RichTextFX-based code editor in
-  the centre, console docked at the bottom. Toggle with the new MODE
-  button on the toolbar
+- New IDE mode: file tree on the left, in-house code editor in the
+  centre (a `ListView` of editable `TextField`-backed lines, no
+  third-party editor library), console docked at the bottom. Toggle
+  with the new MODE button on the toolbar
 - In-editor diff overlay against an immutable `original/` baseline:
   added lines render with a green background, modified lines with
-  orange. Deleted regions surface a `▶` arrow in the gutter; clicking
+  orange. Deleted regions surface a `▶` arrow on the line; clicking
   it expands a read-only ghost block (red, strikethrough) showing the
   original lines, click again to collapse
-- Autosave on every editor change; ghost lines are stripped before the
-  file hits disk so they never affect compilation
-- Native Ctrl+Z / Ctrl+Y in the editor (CodeArea built-in)
+- Autosave on line commit (focus loss / Enter); ghost lines are
+  stripped before the file hits disk so they never affect compilation
+- Per-line native Ctrl+Z / Ctrl+Y while a line is focused
 - New `original/` baseline folder created at decompile time. The mod
   zip now diffs `src/` and `assets/` against `original/` and the old
   `.snapshot` file is gone

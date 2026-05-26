@@ -1,22 +1,45 @@
-/* Diff overlay backgrounds for the in-IDE editor. */
-.diff-added    { -fx-background-color: rgba( 80, 200,  80, 0.25); }
-.diff-modified { -fx-background-color: rgba(255, 165,   0, 0.30); }
-.diff-ghost    { -fx-background-color: rgba(220,  80,  80, 0.30); }
+/* IDE editor cell styling. */
 
-/* Ghost paragraphs render the deleted original lines, struck through. */
-.code-area .text.diff-ghost-text {
-    -fx-strikethrough: true;
-    -fx-fill: #b04040;
-}
-
-.code-area {
+.list-view, .list-cell, .code-line {
     -fx-font-family: 'Consolas', 'Monospaced';
     -fx-font-size: 12px;
+}
+
+.list-cell {
+    -fx-padding: 0 0 0 0;
+    -fx-background-insets: 0;
+}
+
+.code-line {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 1 4 1 4;
+}
+
+.line-number {
+    -fx-text-fill: #808080;
+    -fx-padding: 0 4 0 4;
 }
 
 .deletion-arrow {
     -fx-cursor: hand;
     -fx-text-fill: #c04040;
-    -fx-font-family: 'Monospaced';
-    -fx-padding: 0 4 0 4;
+}
+
+/* Diff backgrounds. */
+.list-cell.diff-added {
+    -fx-background-color: rgba( 80, 200,  80, 0.30);
+}
+
+.list-cell.diff-modified {
+    -fx-background-color: rgba(255, 165,   0, 0.35);
+}
+
+.list-cell.diff-ghost {
+    -fx-background-color: rgba(220,  80,  80, 0.30);
+}
+
+.list-cell.diff-ghost .code-line {
+    -fx-strikethrough: true;
+    -fx-text-fill: #802020;
 }
