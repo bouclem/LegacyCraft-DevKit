@@ -1,0 +1,4 @@
+# LegacyCraft DevKit - method mappings (SRG format)
+# Format: MD: <obfuscated/path>/<obfName> <obfDescriptor> <deobfuscated/path>/<deobfName> <deobfDescriptor>
+# Example:
+# MD: net/minecraft/src/aa/a (III)V net/minecraft/src/Block/setBlockId (III)V

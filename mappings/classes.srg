@@ -1,0 +1,4 @@
+# LegacyCraft DevKit - class mappings (SRG format)
+# Format: CL: <obfuscated/path> <deobfuscated/path>
+# Example:
+# CL: net/minecraft/src/aa net/minecraft/src/Block

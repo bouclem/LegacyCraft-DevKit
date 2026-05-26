@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.legacycraft'
+version = '0.1.0'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClassName = 'com.legacycraft.Main'
+}
+
+// JavaFX ships with Oracle JDK 8 / Zulu FX 8.
+// No external JavaFX dependencies needed at this Java level.
+
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title'  : 'LegacyCraft DevKit',
+            'Implementation-Version': project.version,
+            'Main-Class'            : 'com.legacycraft.Main'
+        )
+    }
+}

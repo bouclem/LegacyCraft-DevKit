@@ -1,0 +1,4 @@
+# LegacyCraft DevKit - field mappings (SRG format)
+# Format: FD: <obfuscated/path>/<obfName> <deobfuscated/path>/<deobfName>
+# Example:
+# FD: net/minecraft/src/aa/a net/minecraft/src/Block/blockID
