@@ -1,6 +1,7 @@
 package com.legacycraft.action;
 
 import com.legacycraft.core.VersionTarget;
+import com.legacycraft.i18n.Lang;
 import com.legacycraft.ui.ConsolePanel;
 
 /**
@@ -21,10 +22,10 @@ public final class DecompileAction {
 
     public void execute(VersionTarget target) {
         if (target == null) {
-            console.log("DECOMPILE failed: no version selected.");
+            console.log(Lang.get("log.decompile.noVersion"));
             return;
         }
-        console.log("DECOMPILE requested for " + target.getDisplayName() + ".");
-        console.log("Decompile pipeline is not implemented yet.");
+        console.log(Lang.format("log.decompile.requested", Lang.get(target.getTranslationKey())));
+        console.log(Lang.get("log.decompile.notImplemented"));
     }
 }

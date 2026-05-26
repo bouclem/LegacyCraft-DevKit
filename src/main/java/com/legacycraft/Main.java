@@ -1,11 +1,13 @@
 package com.legacycraft;
 
+import com.legacycraft.i18n.Lang;
 import com.legacycraft.ui.MainWindow;
 import javafx.application.Application;
 
 /**
  * Entry point for LegacyCraft DevKit.
- * Delegates startup to the JavaFX {@link MainWindow}.
+ * Loads the default locale and delegates startup to the JavaFX
+ * {@link MainWindow}.
  */
 public final class Main {
 
@@ -14,6 +16,7 @@ public final class Main {
     }
 
     public static void main(String[] args) {
+        Lang.loadDefault();
         Application.launch(MainWindow.class, args);
     }
 }

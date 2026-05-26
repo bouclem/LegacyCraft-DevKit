@@ -1,0 +1,21 @@
+{
+    "app.title": "LegacyCraft DevKit",
+
+    "button.run": "RUN",
+    "button.decompile": "DECOMPILE",
+    "button.version": "VERSION",
+
+    "version.b1_7_3": "Minecraft Beta 1.7.3",
+
+    "log.app.started": "{0} started.",
+    "log.version.prompt": "No version selected. Click {0} to choose one.",
+    "log.version.selected": "Version set to {0}.",
+
+    "log.run.requested": "RUN requested for {0}.",
+    "log.run.notImplemented": "Run pipeline is not implemented yet.",
+    "log.run.noVersion": "RUN failed: no version selected.",
+
+    "log.decompile.requested": "DECOMPILE requested for {0}.",
+    "log.decompile.notImplemented": "Decompile pipeline is not implemented yet.",
+    "log.decompile.noVersion": "DECOMPILE failed: no version selected."
+}

@@ -1,6 +1,7 @@
 package com.legacycraft.action;
 
 import com.legacycraft.core.VersionTarget;
+import com.legacycraft.i18n.Lang;
 import com.legacycraft.ui.ConsolePanel;
 
 /**
@@ -21,10 +22,10 @@ public final class RunAction {
 
     public void execute(VersionTarget target) {
         if (target == null) {
-            console.log("RUN failed: no version selected.");
+            console.log(Lang.get("log.run.noVersion"));
             return;
         }
-        console.log("RUN requested for " + target.getDisplayName() + ".");
-        console.log("Run pipeline is not implemented yet.");
+        console.log(Lang.format("log.run.requested", Lang.get(target.getTranslationKey())));
+        console.log(Lang.get("log.run.notImplemented"));
     }
 }

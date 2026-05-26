@@ -4,21 +4,24 @@ plugins {
 }
 
 group = 'com.legacycraft'
-version = '0.1.0'
+version = '0.1-pre1'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+// Toolchain pins the build to Java 8 regardless of which JVM Gradle itself
+// runs on. Gradle auto-detects installed JDKs, so JAVA_HOME does not need
+// to be set manually. JavaFX is bundled with Oracle JDK 8 / Zulu FX 8.
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
 application {
-    mainClassName = 'com.legacycraft.Main'
+    mainClass = 'com.legacycraft.Main'
 }
-
-// JavaFX ships with Oracle JDK 8 / Zulu FX 8.
-// No external JavaFX dependencies needed at this Java level.
 
 jar {
     manifest {

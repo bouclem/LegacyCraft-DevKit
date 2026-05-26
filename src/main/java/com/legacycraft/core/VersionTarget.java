@@ -5,29 +5,27 @@ package com.legacycraft.core;
  * <p>
  * b1.7.3 is the first supported version. New entries can be added here
  * without changing call sites; mappings are shared across versions.
+ * <p>
+ * Display names are not stored on the enum: callers resolve
+ * {@link #getTranslationKey()} through the i18n layer.
  */
 public enum VersionTarget {
 
-    BETA_1_7_3("b1.7.3", "Minecraft Beta 1.7.3");
+    BETA_1_7_3("b1.7.3", "version.b1_7_3");
 
     private final String id;
-    private final String displayName;
+    private final String translationKey;
 
-    VersionTarget(String id, String displayName) {
+    VersionTarget(String id, String translationKey) {
         this.id = id;
-        this.displayName = displayName;
+        this.translationKey = translationKey;
     }
 
     public String getId() {
         return id;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
-    public String toString() {
-        return displayName;
+    public String getTranslationKey() {
+        return translationKey;
     }
 }
