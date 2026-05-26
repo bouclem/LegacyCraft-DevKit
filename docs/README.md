@@ -4,7 +4,8 @@ A JavaFX-based development kit for old Minecraft versions, inspired by classic M
 
 ## Status
 
-`0.1-pre1` — initial scaffold. GUI window with placeholder actions.
+`0.1-pre2` — real decompile and recompile pipelines, version download,
+mod-change zipping. Mappings are still placeholders.
 
 ## Supported versions
 

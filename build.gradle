@@ -4,11 +4,11 @@ plugins {
 }
 
 group = 'com.legacycraft'
-version = '0.1-pre1'
+version = '0.1-pre2'
 
 // Toolchain pins the build to Java 8 regardless of which JVM Gradle itself
-// runs on. Gradle auto-detects installed JDKs, so JAVA_HOME does not need
-// to be set manually. JavaFX is bundled with Oracle JDK 8 / Zulu FX 8.
+// runs on. A Zulu 8 FX install is required for JavaFX to be on the
+// compile/runtime classpath.
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(8)
@@ -19,11 +19,18 @@ repositories {
     mavenCentral()
 }
 
+dependencies {
+    // CFR: Java decompiler invoked in-process. 0.152 is Java 6+ compatible.
+    implementation 'org.benf:cfr:0.152'
+}
+
 application {
     mainClass = 'com.legacycraft.Main'
 }
 
 jar {
+    archiveFileName = 'devkit_gui.jar'
+
     manifest {
         attributes(
             'Implementation-Title'  : 'LegacyCraft DevKit',
@@ -31,4 +38,12 @@ jar {
             'Main-Class'            : 'com.legacycraft.Main'
         )
     }
+
+    // Bundle CFR into the produced jar so the user only needs devkit_gui.jar.
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
 }

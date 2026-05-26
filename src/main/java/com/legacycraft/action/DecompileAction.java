@@ -1,23 +1,38 @@
 package com.legacycraft.action;
 
 import com.legacycraft.core.VersionTarget;
+import com.legacycraft.core.Workspace;
+import com.legacycraft.decompile.AssetExtractor;
+import com.legacycraft.decompile.Decompiler;
+import com.legacycraft.decompile.Snapshot;
+import com.legacycraft.download.HttpDownloader;
+import com.legacycraft.download.VersionResources;
 import com.legacycraft.i18n.Lang;
 import com.legacycraft.ui.ConsolePanel;
 
+import java.io.File;
+import java.io.IOException;
+
 /**
- * Placeholder action triggered by the DECOMPILE button.
- * <p>
- * v0.1: logs intent only. Real decompile pipeline lands in a later version.
+ * Real DECOMPILE pipeline:
+ * <ol>
+ *   <li>Download the version's client jar to {@code versions/&lt;id&gt;/}.</li>
+ *   <li>Run CFR over it into {@code decompile/minecraft_decompile/src/}.</li>
+ *   <li>Extract non-class entries into {@code decompile/minecraft_decompile/assets/}.</li>
+ *   <li>Snapshot every file into {@code decompile/minecraft_decompile/.snapshot}.</li>
+ * </ol>
  */
 public final class DecompileAction {
 
     private final ConsolePanel console;
+    private final Workspace workspace;
 
-    public DecompileAction(ConsolePanel console) {
-        if (console == null) {
-            throw new IllegalArgumentException("console must not be null");
+    public DecompileAction(ConsolePanel console, Workspace workspace) {
+        if (console == null || workspace == null) {
+            throw new IllegalArgumentException("console/workspace must not be null");
         }
         this.console = console;
+        this.workspace = workspace;
     }
 
     public void execute(VersionTarget target) {
@@ -25,7 +40,51 @@ public final class DecompileAction {
             console.log(Lang.get("log.decompile.noVersion"));
             return;
         }
-        console.log(Lang.format("log.decompile.requested", Lang.get(target.getTranslationKey())));
-        console.log(Lang.get("log.decompile.notImplemented"));
+        String name = Lang.get(target.getTranslationKey());
+        console.log(Lang.format("log.decompile.starting", name));
+        try {
+            File jar = downloadClient(target);
+            runDecompiler(jar);
+            extractAssets(jar);
+            takeSnapshot();
+            console.log(Lang.get("log.decompile.done"));
+        } catch (IOException e) {
+            console.log(Lang.format("log.error.io", String.valueOf(e.getMessage())));
+        } catch (RuntimeException e) {
+            console.log(Lang.format("log.error.unexpected", String.valueOf(e.getMessage())));
+        }
+    }
+
+    private File downloadClient(VersionTarget target) throws IOException {
+        File destination = workspace.clientJar(target.getId());
+        String url = VersionResources.clientUrl(target);
+        String sha1 = VersionResources.clientSha1(target);
+        if (HttpDownloader.isAlreadyCached(destination, sha1)) {
+            console.log(Lang.format("log.download.exists", destination.getName()));
+            return destination;
+        }
+        console.log(Lang.format("log.download.starting", url));
+        long size = HttpDownloader.fetch(url, destination, sha1);
+        console.log(Lang.format("log.download.done", destination.getName(), size));
+        return destination;
+    }
+
+    private void runDecompiler(File jar) {
+        File srcDir = workspace.decompileSrc();
+        console.log(Lang.format("log.decompile.cfrStart", jar.getName()));
+        Decompiler.decompile(jar, srcDir);
+        console.log(Lang.format("log.decompile.cfrDone", srcDir.getAbsolutePath()));
+    }
+
+    private void extractAssets(File jar) throws IOException {
+        File assetsDir = workspace.decompileAssets();
+        console.log(Lang.format("log.decompile.assetsStart", jar.getName()));
+        int extracted = AssetExtractor.extract(jar, assetsDir);
+        console.log(Lang.format("log.decompile.assetsDone", extracted, assetsDir.getAbsolutePath()));
+    }
+
+    private void takeSnapshot() throws IOException {
+        int count = Snapshot.record(workspace.decompileRoot(), workspace.snapshotFile());
+        console.log(Lang.format("log.decompile.snapshotSaved", count));
     }
 }

@@ -3,6 +3,7 @@
 
     "button.run": "RUN",
     "button.decompile": "DECOMPILE",
+    "button.recompile": "RECOMPILE",
     "button.version": "VERSION",
 
     "version.b1_7_3": "Minecraft Beta 1.7.3",
@@ -10,12 +11,44 @@
     "log.app.started": "{0} started.",
     "log.version.prompt": "No version selected. Click {0} to choose one.",
     "log.version.selected": "Version set to {0}.",
+    "log.action.busy": "An action is already running. Please wait.",
 
     "log.run.requested": "RUN requested for {0}.",
     "log.run.notImplemented": "Run pipeline is not implemented yet.",
     "log.run.noVersion": "RUN failed: no version selected.",
 
-    "log.decompile.requested": "DECOMPILE requested for {0}.",
-    "log.decompile.notImplemented": "Decompile pipeline is not implemented yet.",
-    "log.decompile.noVersion": "DECOMPILE failed: no version selected."
+    "log.decompile.starting": "Decompiling {0}...",
+    "log.decompile.noVersion": "DECOMPILE failed: no version selected.",
+    "log.decompile.cfrStart": "Running CFR on {0}...",
+    "log.decompile.cfrDone": "CFR finished. Sources written to {0}.",
+    "log.decompile.assetsStart": "Extracting assets from {0}...",
+    "log.decompile.assetsDone": "Extracted {0} asset entries to {1}.",
+    "log.decompile.snapshotSaved": "Snapshot saved ({0} files).",
+    "log.decompile.done": "Decompile complete.",
+
+    "log.recompile.starting": "Recompiling {0}...",
+    "log.recompile.noVersion": "RECOMPILE failed: no version selected.",
+    "log.recompile.noDecompile": "RECOMPILE failed: nothing to recompile. Run DECOMPILE first.",
+    "log.recompile.noJavac": "RECOMPILE failed: no Java compiler available. Use a JDK, not a JRE.",
+    "log.recompile.collecting": "Collecting source files...",
+    "log.recompile.collected": "Found {0} source files.",
+    "log.recompile.fetchingLibs": "Fetching compile-time libraries...",
+    "log.recompile.compiling": "Compiling sources...",
+    "log.recompile.compileFailed": "Compilation failed with {0} error(s).",
+    "log.recompile.compileError": "  {0}",
+    "log.recompile.compileMore": "  ... and {0} more error(s).",
+    "log.recompile.packaging": "Packaging classes and assets into {0}...",
+    "log.recompile.zipping": "Zipping modified files...",
+    "log.recompile.zipped": "Modified files zipped to {0} ({1} entries).",
+    "log.recompile.zippedNone": "No modified files detected; skipping mod zip.",
+    "log.recompile.done": "Recompile complete.",
+
+    "log.download.starting": "Downloading {0}...",
+    "log.download.exists": "Already cached: {0}",
+    "log.download.done": "Downloaded {0} ({1} bytes).",
+    "log.download.failed": "Download failed: {0}",
+    "log.download.hashMismatch": "Hash mismatch for {0}: expected {1}, got {2}.",
+
+    "log.error.io": "I/O error: {0}",
+    "log.error.unexpected": "Unexpected error: {0}"
 }

@@ -7,7 +7,9 @@ package com.legacycraft.core;
  * without changing call sites; mappings are shared across versions.
  * <p>
  * Display names are not stored on the enum: callers resolve
- * {@link #getTranslationKey()} through the i18n layer.
+ * {@link #getTranslationKey()} through the i18n layer. Download URLs and
+ * hashes live in the {@code com.legacycraft.download} package so the core
+ * model stays free of network details.
  */
 public enum VersionTarget {
 

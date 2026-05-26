@@ -1,14 +1,15 @@
 # TODO
 
-## 0.2 (next)
+## Next
 
-- Wire a real decompiler to the DECOMPILE button (CFR or Vineflower)
-- Wire a real run flow to the RUN button (launch the patched client/server)
-- Read SRG files from `mappings/` and apply them
+- Apply SRG mappings during decompile (currently the `mappings/` files
+  are placeholders and decompiled output is raw obfuscated names)
+- Wire the RUN button to actually launch the patched client
+- Add more `VersionTarget` entries beyond b1.7.3
 - Add a Gradle wrapper
 
 ## Later
 
-- Support more Minecraft versions in `VersionTarget`
-- Settings panel (paths to JDK, game jars, output dir)
+- Settings panel (paths, output dirs)
 - Logging to file in addition to the console
+- Mappings editor inside the GUI
