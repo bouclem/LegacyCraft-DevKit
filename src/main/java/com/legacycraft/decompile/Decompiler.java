@@ -25,6 +25,10 @@ public final class Decompiler {
         }
         Map<String, String> options = new HashMap<>();
         options.put("outputdir", outputDir.getAbsolutePath());
+        // b1.7.3 is ProGuard-obfuscated and produces classes/members named
+        // after Java reserved words (do, if, goto, ...). Tell CFR to rename
+        // every identifier that would otherwise be a syntax error.
+        options.put("renameillegalidents", "true");
         // Slightly nicer output for inspection. None of these affect correctness.
         options.put("comments", "false");
         options.put("hideutf", "false");
