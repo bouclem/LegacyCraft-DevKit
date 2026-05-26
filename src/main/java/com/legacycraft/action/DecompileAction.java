@@ -4,7 +4,7 @@ import com.legacycraft.core.VersionTarget;
 import com.legacycraft.core.Workspace;
 import com.legacycraft.decompile.AssetExtractor;
 import com.legacycraft.decompile.Decompiler;
-import com.legacycraft.decompile.Snapshot;
+import com.legacycraft.decompile.OriginalSync;
 import com.legacycraft.download.HttpDownloader;
 import com.legacycraft.download.VersionResources;
 import com.legacycraft.i18n.Lang;
@@ -16,10 +16,11 @@ import java.io.IOException;
 /**
  * Real DECOMPILE pipeline:
  * <ol>
- *   <li>Download the version's client jar to {@code versions/&lt;id&gt;/}.</li>
+ *   <li>Download the version's client jar.</li>
  *   <li>Run CFR over it into {@code decompile/minecraft_decompile/src/}.</li>
  *   <li>Extract non-class entries into {@code decompile/minecraft_decompile/assets/}.</li>
- *   <li>Snapshot every file into {@code decompile/minecraft_decompile/.snapshot}.</li>
+ *   <li>Mirror src + assets into {@code decompile/minecraft_decompile/original/}
+ *       to serve as the diff baseline for later recompiles.</li>
  * </ol>
  */
 public final class DecompileAction {
@@ -46,7 +47,7 @@ public final class DecompileAction {
             File jar = downloadClient(target);
             runDecompiler(jar);
             extractAssets(jar);
-            takeSnapshot();
+            mirrorOriginal();
             console.log(Lang.get("log.decompile.done"));
         } catch (IOException e) {
             console.log(Lang.format("log.error.io", String.valueOf(e.getMessage())));
@@ -83,8 +84,9 @@ public final class DecompileAction {
         console.log(Lang.format("log.decompile.assetsDone", extracted, assetsDir.getAbsolutePath()));
     }
 
-    private void takeSnapshot() throws IOException {
-        int count = Snapshot.record(workspace.decompileRoot(), workspace.snapshotFile());
-        console.log(Lang.format("log.decompile.snapshotSaved", count));
+    private void mirrorOriginal() throws IOException {
+        int srcCount = OriginalSync.populate(workspace.decompileSrc(), workspace.originalSrc());
+        int assetCount = OriginalSync.populate(workspace.decompileAssets(), workspace.originalAssets());
+        console.log(Lang.format("log.decompile.originalSaved", srcCount + assetCount));
     }
 }

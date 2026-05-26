@@ -2,7 +2,6 @@ package com.legacycraft.action;
 
 import com.legacycraft.core.VersionTarget;
 import com.legacycraft.core.Workspace;
-import com.legacycraft.decompile.Snapshot;
 import com.legacycraft.download.HttpDownloader;
 import com.legacycraft.download.Libraries;
 import com.legacycraft.i18n.Lang;
@@ -17,16 +16,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Real RECOMPILE pipeline:
  * <ol>
- *   <li>Validate that a previous decompile exists.</li>
+ *   <li>Validate that a previous decompile exists ({@code original/} present).</li>
  *   <li>Fetch compile-time libraries into {@code deps/}.</li>
  *   <li>Compile {@code decompile/minecraft_decompile/src/} to a temp dir.</li>
  *   <li>Pack classes + assets into {@code libs/minecraft.jar}.</li>
- *   <li>Diff against the snapshot and emit {@code mod-&lt;timestamp&gt;.zip}.</li>
+ *   <li>Diff src + assets against {@code original/} and emit
+ *       {@code mod-&lt;timestamp&gt;.zip}.</li>
  * </ol>
  */
 public final class RecompileAction {
@@ -75,7 +74,7 @@ public final class RecompileAction {
     }
 
     private boolean isReady() {
-        if (!workspace.decompileSrc().isDirectory() || !workspace.snapshotFile().isFile()) {
+        if (!workspace.decompileSrc().isDirectory() || !workspace.originalRoot().isDirectory()) {
             console.log(Lang.get("log.recompile.noDecompile"));
             return false;
         }
@@ -111,7 +110,7 @@ public final class RecompileAction {
         return classpath;
     }
 
-    /** Returns the class output dir on success, null on compile failure. */
+    /** Returns the class output directory on success, null on compile failure. */
     private File compile(List<File> sources, List<File> classpath) throws IOException {
         console.log(Lang.get("log.recompile.compiling"));
         File classOutput = new File(workspace.decompileRoot(), "build-classes");
@@ -139,14 +138,17 @@ public final class RecompileAction {
 
     private void zipModifiedFiles() throws IOException {
         console.log(Lang.get("log.recompile.zipping"));
-        Map<String, String> snapshot = Snapshot.read(workspace.snapshotFile());
         String timestamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
         File zip = workspace.modZip(timestamp);
-        int written = ModZipper.zipModified(workspace.decompileRoot(), snapshot, zip);
-        if (written == 0) {
+        int srcEntries = ModZipper.zipModified(
+                workspace.decompileSrc(), workspace.originalSrc(), zip, "src/");
+        int assetEntries = ModZipper.zipModified(
+                workspace.decompileAssets(), workspace.originalAssets(), zip, "assets/");
+        int total = srcEntries + assetEntries;
+        if (total == 0) {
             console.log(Lang.get("log.recompile.zippedNone"));
             return;
         }
-        console.log(Lang.format("log.recompile.zipped", zip.getName(), written));
+        console.log(Lang.format("log.recompile.zipped", zip.getName(), total));
     }
 }

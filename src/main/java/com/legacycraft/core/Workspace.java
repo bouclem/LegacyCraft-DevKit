@@ -11,18 +11,19 @@ import java.io.File;
  *   &lt;cwd&gt;/
  *     versions/&lt;id&gt;/client.jar
  *     deps/*.jar
+ *     deps/natives/&lt;os&gt;/*.dll  (or .so/.dylib)
  *     decompile/minecraft_decompile/
- *       src/
- *       assets/
- *       .snapshot
+ *       src/        (editable)
+ *       assets/     (editable)
+ *       original/   (read-only baseline created at decompile time)
  *     libs/minecraft.jar
+ *     logs/devkit-&lt;timestamp&gt;.log
  *     mod-&lt;timestamp&gt;.zip
  * </pre>
  */
 public final class Workspace {
 
     private static final String DECOMPILE_FOLDER = "minecraft_decompile";
-    private static final String SNAPSHOT_FILE = ".snapshot";
     private static final String RECOMPILED_JAR = "minecraft.jar";
 
     private final File root;
@@ -54,6 +55,10 @@ public final class Workspace {
         return new File(root, "deps");
     }
 
+    public File nativesDir() {
+        return new File(depsDir(), "natives");
+    }
+
     public File decompileRoot() {
         return new File(new File(root, "decompile"), DECOMPILE_FOLDER);
     }
@@ -66,8 +71,16 @@ public final class Workspace {
         return new File(decompileRoot(), "assets");
     }
 
-    public File snapshotFile() {
-        return new File(decompileRoot(), SNAPSHOT_FILE);
+    public File originalRoot() {
+        return new File(decompileRoot(), "original");
+    }
+
+    public File originalSrc() {
+        return new File(originalRoot(), "src");
+    }
+
+    public File originalAssets() {
+        return new File(originalRoot(), "assets");
     }
 
     public File libsDir() {
@@ -80,5 +93,13 @@ public final class Workspace {
 
     public File modZip(String timestamp) {
         return new File(root, "mod-" + timestamp + ".zip");
+    }
+
+    public File logsDir() {
+        return new File(root, "logs");
+    }
+
+    public File logFile(String timestamp) {
+        return new File(logsDir(), "devkit-" + timestamp + ".log");
     }
 }

@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.legacycraft'
-version = '0.1-pre2'
+version = '0.1-pre3'
 
 // Toolchain pins the build to Java 8 regardless of which JVM Gradle itself
 // runs on. A Zulu 8 FX install is required for JavaFX to be on the
@@ -20,8 +20,14 @@ repositories {
 }
 
 dependencies {
-    // CFR: Java decompiler invoked in-process. 0.152 is Java 6+ compatible.
+    // CFR: in-process Java decompiler. Java 6+ compatible.
     implementation 'org.benf:cfr:0.152'
+
+    // RichTextFX: per-paragraph styled editor. 0.10.9 is the last Java 8 release.
+    implementation 'org.fxmisc.richtext:richtextfx:0.10.9'
+
+    // Line-level diffs between current source and original baseline.
+    implementation 'io.github.java-diff-utils:java-diff-utils:4.12'
 }
 
 application {
@@ -39,11 +45,12 @@ jar {
         )
     }
 
-    // Bundle CFR into the produced jar so the user only needs devkit_gui.jar.
+    // Bundle dependencies into a fat jar so users only need devkit_gui.jar.
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    exclude 'META-INF/MANIFEST.MF'
 }

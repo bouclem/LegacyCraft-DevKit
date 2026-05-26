@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.1-pre3
+
+- New IDE mode: file tree on the left, RichTextFX-based code editor in
+  the centre, console docked at the bottom. Toggle with the new MODE
+  button on the toolbar
+- In-editor diff overlay against an immutable `original/` baseline:
+  added lines render with a green background, modified lines with
+  orange. Deleted regions surface a `▶` arrow in the gutter; clicking
+  it expands a read-only ghost block (red, strikethrough) showing the
+  original lines, click again to collapse
+- Autosave on every editor change; ghost lines are stripped before the
+  file hits disk so they never affect compilation
+- Native Ctrl+Z / Ctrl+Y in the editor (CodeArea built-in)
+- New `original/` baseline folder created at decompile time. The mod
+  zip now diffs `src/` and `assets/` against `original/` and the old
+  `.snapshot` file is gone
+- Real RUN pipeline: launches `libs/minecraft.jar` in a forked JVM
+  with `-Djava.library.path=deps/natives`, username `DEV`. LWJGL 2.9.0
+  natives are downloaded from `libraries.minecraft.net` and unpacked
+  on first run. Process stdout streams back into the console
+- Session log on disk at `logs/devkit-<timestamp>.log`, written in
+  parallel with the GUI console
+- Default window enlarged to 1280x720
+- New i18n keys for IDE placeholder, mode toggle, and run pipeline
+
 ## 0.1-pre2
 
 - Real DECOMPILE pipeline: download `client.jar` from Mojang (with SHA-1

@@ -12,14 +12,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Compares a directory against a snapshot and zips every file whose
- * SHA-1 differs from the recorded value (or which is brand new).
- * Deletions are not represented.
+ * Compares a current directory against an immutable {@code original/}
+ * baseline and zips every file whose contents differ (or which is brand new).
+ * Files present in the original but missing now are not represented.
  */
 public final class ModZipper {
 
@@ -28,10 +27,14 @@ public final class ModZipper {
     }
 
     /**
-     * @return the number of entries written, or 0 if no differences were found
+     * @param current   the editable tree (e.g. {@code decompile/.../src})
+     * @param baseline  the matching {@code original/} tree
+     * @param outputZip target zip file (parent directories are created)
+     * @param entryPrefix prefix prepended to each zip entry's path
+     * @return the number of zip entries written
      */
-    public static int zipModified(File root, Map<String, String> snapshot, File outputZip) throws IOException {
-        List<String> modified = collectModified(root, snapshot);
+    public static int zipModified(File current, File baseline, File outputZip, String entryPrefix) throws IOException {
+        List<File> modified = collectModified(current, baseline);
         if (modified.isEmpty()) {
             return 0;
         }
@@ -40,30 +43,35 @@ public final class ModZipper {
             throw new IOException("Could not create directory: " + parent);
         }
         try (ZipOutputStream zip = new ZipOutputStream(
-                new BufferedOutputStream(new FileOutputStream(outputZip)))) {
-            for (String relPath : modified) {
-                writeEntry(zip, root, relPath);
+                new BufferedOutputStream(new FileOutputStream(outputZip, true)))) {
+            for (File file : modified) {
+                String rel = relativize(current, file);
+                writeEntry(zip, file, entryPrefix + rel);
             }
         }
         return modified.size();
     }
 
-    private static List<String> collectModified(File root, Map<String, String> snapshot) throws IOException {
-        List<String> modified = new ArrayList<>();
-        for (File file : walk(root)) {
-            String rel = relativize(root, file);
+    private static List<File> collectModified(File current, File baseline) throws IOException {
+        List<File> modified = new ArrayList<>();
+        for (File file : walk(current)) {
+            String rel = relativize(current, file);
+            File baselineFile = new File(baseline, rel);
+            if (!baselineFile.isFile()) {
+                modified.add(file);
+                continue;
+            }
             String currentHash = Hashing.sha1(file);
-            String previous = snapshot.get(rel);
-            if (previous == null || !previous.equalsIgnoreCase(currentHash)) {
-                modified.add(rel);
+            String baselineHash = Hashing.sha1(baselineFile);
+            if (!currentHash.equalsIgnoreCase(baselineHash)) {
+                modified.add(file);
             }
         }
         return modified;
     }
 
-    private static void writeEntry(ZipOutputStream zip, File root, String relPath) throws IOException {
-        File file = new File(root, relPath);
-        ZipEntry entry = new ZipEntry(relPath);
+    private static void writeEntry(ZipOutputStream zip, File file, String entryName) throws IOException {
+        ZipEntry entry = new ZipEntry(entryName);
         entry.setTime(file.lastModified());
         zip.putNextEntry(entry);
         try (InputStream in = new FileInputStream(file)) {
@@ -91,7 +99,7 @@ public final class ModZipper {
             for (File child : children) {
                 if (child.isDirectory()) {
                     stack.push(child);
-                } else if (child.isFile() && !child.getName().equals(".snapshot")) {
+                } else if (child.isFile()) {
                     files.add(child);
                 }
             }

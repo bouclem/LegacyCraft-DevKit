@@ -5,17 +5,26 @@
     "button.decompile": "DECOMPILE",
     "button.recompile": "RECOMPILE",
     "button.version": "VERSION",
+    "button.mode": "MODE: {0}",
+
+    "mode.console": "CONSOLE",
+    "mode.ide": "IDE",
 
     "version.b1_7_3": "Minecraft Beta 1.7.3",
+
+    "ide.placeholder": "Select a .java file in the tree to start editing.",
 
     "log.app.started": "{0} started.",
     "log.version.prompt": "No version selected. Click {0} to choose one.",
     "log.version.selected": "Version set to {0}.",
+    "log.mode.changed": "Mode set to {0}.",
     "log.action.busy": "An action is already running. Please wait.",
 
-    "log.run.requested": "RUN requested for {0}.",
-    "log.run.notImplemented": "Run pipeline is not implemented yet.",
     "log.run.noVersion": "RUN failed: no version selected.",
+    "log.run.noJar": "RUN failed: libs/minecraft.jar not found. Run RECOMPILE first.",
+    "log.run.launching": "Launching {0}...",
+    "log.run.stdout": "[mc] {0}",
+    "log.run.exited": "Minecraft process exited with code {0}.",
 
     "log.decompile.starting": "Decompiling {0}...",
     "log.decompile.noVersion": "DECOMPILE failed: no version selected.",
@@ -23,7 +32,7 @@
     "log.decompile.cfrDone": "CFR finished. Sources written to {0}.",
     "log.decompile.assetsStart": "Extracting assets from {0}...",
     "log.decompile.assetsDone": "Extracted {0} asset entries to {1}.",
-    "log.decompile.snapshotSaved": "Snapshot saved ({0} files).",
+    "log.decompile.originalSaved": "Saved {0} files into the original/ baseline.",
     "log.decompile.done": "Decompile complete.",
 
     "log.recompile.starting": "Recompiling {0}...",
@@ -46,8 +55,6 @@
     "log.download.starting": "Downloading {0}...",
     "log.download.exists": "Already cached: {0}",
     "log.download.done": "Downloaded {0} ({1} bytes).",
-    "log.download.failed": "Download failed: {0}",
-    "log.download.hashMismatch": "Hash mismatch for {0}: expected {1}, got {2}.",
 
     "log.error.io": "I/O error: {0}",
     "log.error.unexpected": "Unexpected error: {0}"
