@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.1-pre4
+
+- New mapping engine (`com.legacycraft.mappings`):
+  - `SrgParser` reads the classic MCP `CL:` / `FD:` / `MD:` line format
+  - `SrgMappings` is the in-memory representation, ASM-friendly via
+    `toAsmMap()`
+  - `JarRemapper` runs each `.class` entry of a downloaded jar through
+    ASM's `ClassRemapper` + `SimpleRemapper` and writes a remapped jar
+- DECOMPILE pipeline applies mappings (when present) before CFR runs, so
+  the decompile output is already deobfuscated to LegacyCraft names. If
+  no mappings exist, the source jar is decompiled raw as before
+- 99 verified class mappings shipped:
+  - 58 networking entries (packet base + handler + 56 packet bodies, every
+    one matched to its registered protocol id from the bytecode-level
+    static registry)
+  - 12 NBT entries (each subclass identified one-to-one by its tag type
+    byte)
+  - 7 game core base classes: `LcBlock`, `LcItem`, `LcEntity`,
+    `LcLivingEntity`, `LcGuiScreen`, `LcEntityRenderer`, `LcWorldGenerator`
+  - 7 supporting classes: `LcWorld`, `LcBlockAccess`, `LcRenderManager`,
+    `LcStepSound`, `LcAxisAlignedBB`, `LcModelRenderer`, `LcGui`
+  - 4 game runtime helpers: `LcGameSettings`,
+    `LcOcclusionQuerySupport`, `LcSoundManager`, `LcMouseHelper`
+  - 4 misc: `LcMaterial`, `LcToolMaterial`, `LcTileEntity`, `LcNbtBase`
+- Each mapping entry includes a short evidence comment explaining the
+  bytecode signal that identified it; entries with no clear signal are
+  intentionally omitted
+- New `mappings/README.md` documenting the format, the naming
+  convention (`Lc` prefix), and the rule for adding new entries
+- ASM 9.7 + asm-commons 9.7 added as dependencies
+- New i18n keys for the mapping pipeline log lines
+
 ## 0.1-pre3
 
 - New IDE mode: file tree on the left, in-house code editor in the

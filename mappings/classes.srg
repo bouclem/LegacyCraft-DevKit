@@ -1,4 +1,249 @@
 # LegacyCraft DevKit - class mappings (SRG format)
-# Format: CL: <obfuscated/path> <deobfuscated/path>
-# Example:
-# CL: net/minecraft/src/aa net/minecraft/src/Block
+# Format: CL: <obfClass> <deobfClass>
+#
+# Every entry below is grounded in the actual bytecode of b1.7.3 client.jar.
+# Names use the Lc prefix throughout. Where bytecode does not unambiguously
+# reveal a class's purpose, no entry is written.
+
+# ---------------------------------------------------------------------------
+# Networking
+# Evidence: ki is abstract with read(DataInputStream), write(DataOutputStream),
+# handle(<handler>), getId() methods, and a static block that registers 57
+# subclasses against integer packet ids. ti is the handler interface that
+# every packet's a(ti) method dispatches to.
+# ---------------------------------------------------------------------------
+
+CL: ki net/legacycraft/network/LcPacket
+CL: ti net/legacycraft/network/LcPacketHandler
+
+# Packet body classes - registered in ki's static initializer with explicit
+# integer packet ids. Names below preserve the registered id so the binding
+# from bytecode to source is one-to-one and verifiable.
+
+CL: lz net/legacycraft/network/packet/LcPacket000
+CL: nz net/legacycraft/network/packet/LcPacket001
+CL: mp net/legacycraft/network/packet/LcPacket002
+CL: pe net/legacycraft/network/packet/LcPacket003
+CL: hg net/legacycraft/network/packet/LcPacket004
+CL: s  net/legacycraft/network/packet/LcPacket005
+CL: rc net/legacycraft/network/packet/LcPacket006
+CL: a  net/legacycraft/network/packet/LcPacket007
+CL: eu net/legacycraft/network/packet/LcPacket008
+CL: ox net/legacycraft/network/packet/LcPacket009
+CL: ig net/legacycraft/network/packet/LcPacket010
+CL: af net/legacycraft/network/packet/LcPacket011
+CL: vh net/legacycraft/network/packet/LcPacket012
+CL: ev net/legacycraft/network/packet/LcPacket013
+CL: jv net/legacycraft/network/packet/LcPacket014
+CL: gx net/legacycraft/network/packet/LcPacket015
+CL: ho net/legacycraft/network/packet/LcPacket016
+CL: jz net/legacycraft/network/packet/LcPacket017
+CL: nm net/legacycraft/network/packet/LcPacket018
+CL: ts net/legacycraft/network/packet/LcPacket019
+CL: mf net/legacycraft/network/packet/LcPacket020
+CL: nd net/legacycraft/network/packet/LcPacket021
+CL: di net/legacycraft/network/packet/LcPacket022
+CL: so net/legacycraft/network/packet/LcPacket023
+CL: jm net/legacycraft/network/packet/LcPacket024
+CL: vt net/legacycraft/network/packet/LcPacket025
+CL: ql net/legacycraft/network/packet/LcPacket027
+CL: gj net/legacycraft/network/packet/LcPacket028
+CL: rv net/legacycraft/network/packet/LcPacket029
+CL: uh net/legacycraft/network/packet/LcPacket030
+CL: sv net/legacycraft/network/packet/LcPacket031
+CL: sb net/legacycraft/network/packet/LcPacket032
+CL: pz net/legacycraft/network/packet/LcPacket033
+CL: rg net/legacycraft/network/packet/LcPacket034
+CL: jf net/legacycraft/network/packet/LcPacket038
+CL: ns net/legacycraft/network/packet/LcPacket039
+CL: ux net/legacycraft/network/packet/LcPacket040
+CL: se net/legacycraft/network/packet/LcPacket050
+CL: ef net/legacycraft/network/packet/LcPacket051
+CL: wu net/legacycraft/network/packet/LcPacket052
+CL: tv net/legacycraft/network/packet/LcPacket053
+CL: vw net/legacycraft/network/packet/LcPacket054
+CL: rm net/legacycraft/network/packet/LcPacket060
+CL: fn net/legacycraft/network/packet/LcPacket061
+CL: ca net/legacycraft/network/packet/LcPacket070
+CL: fa net/legacycraft/network/packet/LcPacket071
+CL: iw net/legacycraft/network/packet/LcPacket100
+CL: mn net/legacycraft/network/packet/LcPacket101
+CL: qs net/legacycraft/network/packet/LcPacket102
+CL: hq net/legacycraft/network/packet/LcPacket103
+CL: kb net/legacycraft/network/packet/LcPacket104
+CL: mv net/legacycraft/network/packet/LcPacket105
+CL: oj net/legacycraft/network/packet/LcPacket106
+CL: ui net/legacycraft/network/packet/LcPacket130
+CL: ai net/legacycraft/network/packet/LcPacket131
+CL: of net/legacycraft/network/packet/LcPacket200
+CL: yr net/legacycraft/network/packet/LcPacket255
+
+
+# ---------------------------------------------------------------------------
+# Game runtime helpers
+# Each class below is identified from a single, unambiguous bytecode fact:
+# either a unique import set, a constant string array, or a unique stdlib
+# call.
+# ---------------------------------------------------------------------------
+
+# kv: options/settings.
+# Evidence: contains String[] {"options.renderDistance.far", "...normal",
+# "...short", "...tiny"} and {"options.difficulty.peaceful", "...easy",
+# "...normal", "...hard"} as private static finals. These are the canonical
+# settings keys.
+CL: kv net/legacycraft/client/LcGameSettings
+
+# cx: OpenGL capability probe.
+# Evidence: a single method that returns
+# `a && GLContext.getCapabilities().GL_ARB_occlusion_query`. The class has
+# no fields beyond a single boolean. It is the sole OpenGL feature gate.
+CL: cx net/legacycraft/client/render/LcOcclusionQuerySupport
+
+# yo: sound manager.
+# Evidence: imports paulscode.sound.SoundSystem,
+# paulscode.sound.codecs.CodecJOrbis, paulscode.sound.codecs.CodecWav,
+# paulscode.sound.libraries.LibraryLWJGLOpenAL and holds a static
+# SoundSystem reference.
+CL: yo net/legacycraft/client/audio/LcSoundManager
+
+# vy: mouse/cursor helper.
+# Evidence: imports org.lwjgl.input.Cursor and org.lwjgl.input.Mouse, holds
+# fields of types Component and Cursor, and exposes public int x, y.
+CL: vy net/legacycraft/client/input/LcMouseHelper
+
+
+# ---------------------------------------------------------------------------
+# Game core base classes
+# ---------------------------------------------------------------------------
+
+# uu: block base.
+# Evidence: contains parallel arrays uu[256], boolean[256] x4, int[256] x2,
+# and ~50 public static finals seeded with constructor strings "stone",
+# "grass", "dirt", "stonebrick", "sapling", "wood", "cloth", etc. Subclasses
+# count: 49.
+CL: uu net/legacycraft/world/block/LcBlock
+
+# gm: item base.
+# Evidence: holds gm[32000] as a global registry and ~30 public static
+# finals seeded with strings "shovelIron", "pickaxeIron", "flintAndSteel",
+# "apple", "bow", "arrow", "swordIron", "swordWood", etc. Subclasses
+# count: 27.
+CL: gm net/legacycraft/world/item/LcItem
+
+# sn: entity base.
+# Evidence: abstract class with a static counter (aD = a++) for unique
+# entity ids; doubles aP/aQ/aR (motion vector); doubles aJ/aK/aL (last
+# position); a final eq AABB field; subclasses count: 14.
+CL: sn net/legacycraft/world/entity/LcEntity
+
+# da: GUI screen base.
+# Evidence: imports Keyboard, Mouse, Toolkit, DataFlavor (clipboard); holds
+# a Minecraft field, an int width/height pair, and a List of widgets;
+# subclasses count: 23. The drawScreen-shaped method a(int, int, float)
+# iterates the widget list.
+CL: da net/legacycraft/client/gui/LcGuiScreen
+
+# bw: entity renderer base.
+# Evidence: abstract class with a single abstract method
+# a(sn, double, double, double, float, float). The owner of every
+# subclass renders an entity (sn) at world coordinates with partial-tick
+# floats. Subclasses count: 13.
+CL: bw net/legacycraft/client/render/entity/LcEntityRenderer
+
+# pg: world feature/generator.
+# Evidence: tiny abstract class with one abstract method
+# a(fd, Random, int, int, int). The shape (world, RNG, x, y, z -> bool)
+# is the canonical "place feature in world" signature; 20 subclasses.
+CL: pg net/legacycraft/world/gen/LcWorldGenerator
+
+
+# fd: world.
+# Evidence: implements xp; holds public List b/c/d/e for entities, tile
+# entities, players, weather entries; tracks a long mask 0xFFFFFFL (world
+# seed mask); is the parameter type to every world generator (pg) and
+# block/entity update.
+CL: fd net/legacycraft/world/LcWorld
+
+# ls: living entity.
+# Evidence: extends sn (entity); declares int E = 20 default health;
+# protected String O = "/mob/char.png" texture path; protected boolean P;
+# the parameter type to every entity renderer (bw)'s subclass.
+CL: ls net/legacycraft/world/entity/LcLivingEntity
+
+# th: render manager.
+# Evidence: holds public ji texture manager, public fd world, public ls
+# tracked entity, public kv settings, static double b/c/d (camera xyz),
+# static th a singleton instance; imports GL11.
+CL: th net/legacycraft/client/render/LcRenderManager
+
+# ct: step sound metadata.
+# Evidence: 3-field final class (String name, float volume, float pitch)
+# whose a() returns "step." + this.a. Direct one-to-one mapping to the
+# block/material step sound concept.
+CL: ct net/legacycraft/world/block/LcStepSound
+
+# eq: axis-aligned bounding box.
+# Evidence: 6 public doubles (a..f) initialized as min/max pairs through
+# a(double, double, double, double, double, double) static factory; class
+# also exposes a static List pool and counter.
+CL: eq net/legacycraft/world/util/LcAxisAlignedBB
+
+# ko: model renderer/part.
+# Evidence: abstract class with float field m (texture coordinate offset),
+# boolean n (compiled flag), and three (float...) rotation/render methods.
+# Held by every entity renderer subclass.
+CL: ko net/legacycraft/client/model/LcModelRenderer
+
+# ub: GUI render primitive base.
+# Evidence: declares the drawHorizontalLine / drawVerticalLine / drawRect
+# helpers used by every GUI screen; da extends ub.
+CL: ub net/legacycraft/client/gui/LcGui
+
+
+# xp: block accessor interface.
+# Evidence: interface with int getBlockId(int,int,int) at slot a, plus
+# tile-entity getter and brightness/light getters keyed on (x,y,z).
+# Implemented by fd (world).
+CL: xp net/legacycraft/world/LcBlockAccess
+
+# bu: tool tier/material enum.
+# Evidence: enum with 5 values a..e, each constructed with
+# (int harvestLevel, int maxUses, float efficiency, int damageVsEntity);
+# referenced by item subclasses tagged with material like sword/pickaxe.
+CL: bu net/legacycraft/world/item/LcToolMaterial
+
+# ln: material.
+# Evidence: holds ~25 public static finals each constructed from a dx
+# (MapColor-like) enum with chained flag setters .o(), .n(), .k(); the
+# parameter type to LcBlockAccess.f(x,y,z) (block material at coords).
+CL: ln net/legacycraft/world/block/LcMaterial
+
+# ow: tile entity base.
+# Evidence: static Map registry with id-string registration; fd d (world),
+# int e/f/g (x/y/z) instance fields; protected boolean h (invalid flag).
+CL: ow net/legacycraft/world/tileentity/LcTileEntity
+
+# ij: NBT tag base.
+# Evidence: abstract class with abstract void a(DataInput), abstract void
+# a(DataOutput), abstract byte a() tag id; private String a name.
+CL: ij net/legacycraft/world/nbt/LcNbtBase
+
+
+# ---------------------------------------------------------------------------
+# NBT tag subclasses
+# Each subclass overrides ij.a() to return its tag type as a constant byte.
+# The mapping below is one-to-one with the NBT tag type id from the
+# constant returned in each class.
+# ---------------------------------------------------------------------------
+
+CL: lh net/legacycraft/world/nbt/LcNbtTagEnd          # tag id 0
+CL: qp net/legacycraft/world/nbt/LcNbtTagByte         # tag id 1
+CL: ul net/legacycraft/world/nbt/LcNbtTagShort        # tag id 2
+CL: pp net/legacycraft/world/nbt/LcNbtTagInt          # tag id 3
+CL: mi net/legacycraft/world/nbt/LcNbtTagLong         # tag id 4
+CL: p  net/legacycraft/world/nbt/LcNbtTagFloat        # tag id 5
+CL: sz net/legacycraft/world/nbt/LcNbtTagDouble       # tag id 6
+CL: hn net/legacycraft/world/nbt/LcNbtTagByteArray    # tag id 7
+CL: xb net/legacycraft/world/nbt/LcNbtTagString       # tag id 8
+CL: sp net/legacycraft/world/nbt/LcNbtTagList         # tag id 9
+CL: nu net/legacycraft/world/nbt/LcNbtTagCompound     # tag id 10

@@ -1,4 +1,8 @@
 # LegacyCraft DevKit - method mappings (SRG format)
-# Format: MD: <obfuscated/path>/<obfName> <obfDescriptor> <deobfuscated/path>/<deobfName> <deobfDescriptor>
-# Example:
-# MD: net/minecraft/src/aa/a (III)V net/minecraft/src/Block/setBlockId (III)V
+# Format: MD: <obfClass>/<obfMethod> <obfDesc> <deobfClass>/<deobfMethod> <deobfDesc>
+#
+# Empty for now. Method mappings need a verified semantic role just like
+# fields; obfuscated method names like a/b/c reuse a single short name
+# across many methods in the same class, so naming them safely requires
+# more context than can be inferred from a single class. Add entries here
+# as their meaning is verified.

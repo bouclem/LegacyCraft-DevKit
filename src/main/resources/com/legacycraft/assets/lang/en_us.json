@@ -33,6 +33,9 @@
     "log.decompile.assetsStart": "Extracting assets from {0}...",
     "log.decompile.assetsDone": "Extracted {0} asset entries to {1}.",
     "log.decompile.originalSaved": "Saved {0} files into the original/ baseline.",
+    "log.decompile.noMappings": "No SRG mappings present; decompiling raw obfuscated jar.",
+    "log.decompile.applyingMappings": "Applying SRG mappings ({0} entries)...",
+    "log.decompile.mappingsApplied": "Remapped jar written: {0}.",
     "log.decompile.done": "Decompile complete.",
 
     "log.recompile.starting": "Recompiling {0}...",

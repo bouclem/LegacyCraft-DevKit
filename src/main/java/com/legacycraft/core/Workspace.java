@@ -51,6 +51,15 @@ public final class Workspace {
         return new File(versionDir(versionId), "client.jar");
     }
 
+    /** Remapped jar produced before decompilation when SRG mappings are present. */
+    public File remappedClientJar(String versionId) {
+        return new File(versionDir(versionId), "client-remapped.jar");
+    }
+
+    public File mappingsDir() {
+        return new File(root, "mappings");
+    }
+
     public File depsDir() {
         return new File(root, "deps");
     }

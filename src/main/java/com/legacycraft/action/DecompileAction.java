@@ -8,6 +8,9 @@ import com.legacycraft.decompile.OriginalSync;
 import com.legacycraft.download.HttpDownloader;
 import com.legacycraft.download.VersionResources;
 import com.legacycraft.i18n.Lang;
+import com.legacycraft.mappings.JarRemapper;
+import com.legacycraft.mappings.SrgMappings;
+import com.legacycraft.mappings.SrgParser;
 import com.legacycraft.ui.ConsolePanel;
 
 import java.io.File;
@@ -45,8 +48,9 @@ public final class DecompileAction {
         console.log(Lang.format("log.decompile.starting", name));
         try {
             File jar = downloadClient(target);
-            runDecompiler(jar);
-            extractAssets(jar);
+            File jarToDecompile = applyMappings(target, jar);
+            runDecompiler(jarToDecompile);
+            extractAssets(jarToDecompile);
             mirrorOriginal();
             console.log(Lang.get("log.decompile.done"));
         } catch (IOException e) {
@@ -54,6 +58,19 @@ public final class DecompileAction {
         } catch (RuntimeException e) {
             console.log(Lang.format("log.error.unexpected", String.valueOf(e.getMessage())));
         }
+    }
+
+    private File applyMappings(VersionTarget target, File jar) throws IOException {
+        SrgMappings mappings = SrgParser.parseDirectory(workspace.mappingsDir());
+        if (mappings.isEmpty()) {
+            console.log(Lang.get("log.decompile.noMappings"));
+            return jar;
+        }
+        File destination = workspace.remappedClientJar(target.getId());
+        console.log(Lang.format("log.decompile.applyingMappings", mappings.totalEntries()));
+        File result = JarRemapper.apply(jar, destination, mappings);
+        console.log(Lang.format("log.decompile.mappingsApplied", result.getName()));
+        return result;
     }
 
     private File downloadClient(VersionTarget target) throws IOException {

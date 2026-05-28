@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.legacycraft'
-version = '0.1-pre3'
+version = '0.1-pre4'
 
 // Toolchain pins the build to Java 8 regardless of which JVM Gradle itself
 // runs on. A Zulu 8 FX install is required for JavaFX to be on the
@@ -19,12 +19,25 @@ repositories {
     mavenCentral()
 }
 
+// Bundle the repo-root mappings/ folder into the jar at a known classpath
+// location so the runtime can find them regardless of working directory.
+processResources {
+    from('mappings') {
+        into 'com/legacycraft/assets/mappings'
+        include '**/*.srg'
+    }
+}
+
 dependencies {
     // CFR: in-process Java decompiler. Java 6+ compatible.
     implementation 'org.benf:cfr:0.152'
 
     // Line-level diffs between current source and original baseline.
     implementation 'io.github.java-diff-utils:java-diff-utils:4.12'
+
+    // ASM: bytecode reading, ClassRemapper, SimpleRemapper. Java 5+ compatible.
+    implementation 'org.ow2.asm:asm:9.7'
+    implementation 'org.ow2.asm:asm-commons:9.7'
 }
 
 application {

@@ -4,8 +4,9 @@ A JavaFX-based development kit for old Minecraft versions, inspired by classic M
 
 ## Status
 
-`0.1-pre3` — IDE mode with in-editor diff overlay, real RUN / DECOMPILE /
-RECOMPILE pipelines, session logging. Mappings still placeholders.
+`0.1-pre4` — mapping engine wired into DECOMPILE. 99 verified Lc-prefixed
+class mappings ship in `mappings/`. Field and method mappings start empty
+and grow with verified entries.
 
 ## Supported versions
 

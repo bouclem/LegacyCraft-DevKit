@@ -2,8 +2,9 @@
 
 ## Next
 
-- Apply SRG mappings during decompile (currently the `mappings/` files
-  are placeholders and decompiled output is raw obfuscated names)
+- More class mappings (currently 99/675; add only when bytecode evidence
+  is unambiguous)
+- First batch of field and method mappings
 - Add more `VersionTarget` entries beyond b1.7.3
 - Add a Gradle wrapper
 

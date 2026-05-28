@@ -1,4 +1,7 @@
 # LegacyCraft DevKit - field mappings (SRG format)
-# Format: FD: <obfuscated/path>/<obfName> <deobfuscated/path>/<deobfName>
-# Example:
-# FD: net/minecraft/src/aa/a net/minecraft/src/Block/blockID
+# Format: FD: <obfClass>/<obfField> <deobfClass>/<deobfField>
+#
+# Empty for now. Field mappings require knowing both the owner class and
+# the semantic role of the field; for most fields, that role is not
+# unambiguous from bytecode alone, so they are omitted on purpose. Add
+# entries here as their meaning is verified.
